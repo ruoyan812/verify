@@ -1,27 +1,25 @@
 /**
- * HumanVerify —— 可嵌入的人机验证 widget（自研，不依赖 Turnstile）
+ * HumanVerify —— Human verification widget by Worker
  *
- * 用法（同源/跨站均可，脚本由你的 Worker 提供）：
+ * Use script:
  *
  *   <button data-human-verify data-callback="onVerified" data-input="#token">点击验证</button>
- *   <script src="https://你的worker.example.workers.dev/human-verify.js" async></script>
+ *   <script src="https://verify.roooooyan.work/human-verify.js" async></script>
  *   <script>
  *     function onVerified(token, btn, risk) {
- *       // token：验证通过凭据；risk：{ ipRisk, automationScore, asn, country }
  *       console.log(token, risk);
  *     }
  *   </script>
  *
- * 也可编程式调用：
+ * Coding sript avalible: 
  *   HumanVerify.render("#myBtn", { onVerified: (token, btn, risk) => {...} });
- *   const token = await HumanVerify.verify();   // 主动触发一次验证
- *   HumanVerify.lastRisk;                       // 最近一次风险评估
+ *   const token = await HumanVerify.verify();   
+ *   HumanVerify.lastRisk;                       
  *
- * 验证通过后会：写入 btn.dataset.token、把 token 填入 data-input 指定的隐藏域、
- * 调用 data-callback 全局函数或 onVerified 回调（第三个参数为风险评估）。token 单次有效。
+ * After successful verification, the following will be done: write btn.dataset.token, and fill the token into the hidden field specified in data-input.
+ * Calls the global data-callback function or the onVerified callback (the third parameter is the risk assessment). The token is valid only once.
  */
 (function () {
-  // API 基址：自动取【脚本自身来源】(即 Worker 域名)，保证跨站嵌入时请求仍打到 Worker
   const API_BASE = (() => {
     try {
       const s = document.currentScript;
@@ -32,7 +30,6 @@
 
   let lastRisk = null;
 
-  // ---- 内联 PoW Worker 源码（用 Blob 构造，整个 widget 单文件自包含）----
   const POW_SRC = `
 self.onmessage = async (e) => {
   const challenge = e.data.challenge;
@@ -65,14 +62,12 @@ self.onmessage = async (e) => {
     return new Worker(URL.createObjectURL(blob));
   }
 
-  // ---- 被动信号采集（环境指纹 + 真实交互轨迹）----
   if (typeof window !== "undefined") {
     window.addEventListener("mousemove", () => (window.__hv_m = (window.__hv_m || 0) + 1), { passive: true });
     window.addEventListener("scroll", () => (window.__hv_s = (window.__hv_s || 0) + 1), { passive: true });
     window.addEventListener("keydown", () => (window.__hv_k = (window.__hv_k || 0) + 1), { passive: true });
   }
 
-  // 浏览器插件 / MIME 类型枚举（真实浏览器通常装有若干插件）
   function getPlugins() {
     try {
       const plugins = [];
@@ -87,8 +82,6 @@ self.onmessage = async (e) => {
     }
   }
 
-  // 自动化工具特征检测（Selenium / Playwright / Puppeteer / PhantomJS / headless 等）
-  // 注意：这些是【客户端信号】，高级机器人可伪造，仅作参考评分，不作为服务端放行依据
   function detectAutomation() {
     const flags = [];
     let score = 0;
@@ -100,7 +93,6 @@ self.onmessage = async (e) => {
       flags.push("webdriver");
     }
 
-    // ChromeDriver 注入的 cdc_ / $cdc_ 变量特征
     let cdc = false;
     try {
       cdc = Object.getOwnPropertyNames(window).some(
@@ -222,7 +214,6 @@ self.onmessage = async (e) => {
     return hex(await crypto.subtle.digest("SHA-256", enc(JSON.stringify(sig))));
   }
 
-  // 粗略「真人可信度」评分：仅作参考，绝不作为服务端放行依据
   function scoreSignals(sig) {
     let s = 0;
     if (!sig.webdriver) s += 30;
@@ -235,7 +226,6 @@ self.onmessage = async (e) => {
     return Math.max(0, Math.min(100, s));
   }
 
-  // ---- 核心：点击后执行一次验证 ----
   async function verify() {
     const ch = await (await fetch(API_BASE + "/challenge")).json();
     if (!ch.ok) throw new Error(ch.error || "challenge failed");
@@ -270,7 +260,6 @@ self.onmessage = async (e) => {
     return v.verification;
   }
 
-  // ---- 把 token 落到按钮 / 隐藏域并触发回调（risk 作为第三参数）----
   function applyResult(btn, token, opts, risk) {
     if (btn) btn.dataset.token = token;
     const inputSel = btn && btn.dataset.input;
@@ -298,7 +287,7 @@ self.onmessage = async (e) => {
         btn.textContent = "验证中…";
         const token = await verify();
         const risk = lastRisk;
-        btn.textContent = "✅ 已验证";
+        btn.textContent = "✅ 验证成功";
         btn.classList.add("hv-verified");
         applyResult(btn, token, opts, risk);
       } catch (err) {
