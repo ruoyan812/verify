@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>点击式人机验证（自研 Worker）</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        max-width: 480px; margin: 12vh auto; padding: 0 20px; line-height: 1.6;
+      }
+      h1 { font-size: 1.4rem; }
+      .card { border: 1px solid #d0d0d0; border-radius: 12px; padding: 24px; background: #fafafa; }
+      button {
+        padding: 10px 18px; font-size: 1rem; border: 0; border-radius: 8px;
+        background: #2563eb; color: #fff; cursor: pointer;
+      }
+      button:disabled { background: #9aa6b2; cursor: not-allowed; }
+      button.hv-verified { background: #16a34a; }
+      .muted { color: #888; font-size: 0.85rem; }
+      #out { margin-top: 14px; word-break: break-all; font-size: 0.9rem; }
+      code { background: #eee; padding: 1px 5px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>点击式人机验证</h1>
+    <p class="muted">
+      引入 <code>human-verify.js</code> 后，点击下方按钮才开始验证；通过后回调返回 token。
+    </p>
+
+    <div class="card">
+      <!-- 声明式用法：data-human-verify + data-callback -->
+      <button data-human-verify data-callback="onVerified" data-input="#token">
+        点击进行人机验证
+      </button>
+      <input type="hidden" id="token" />
+      <div id="out" class="muted">尚未验证</div>
+    </div>
+
+    <!-- 回调须在使用前定义（全局函数） -->
+    <script>
+      function onVerified(token, btn, risk) {
+        const r = risk || {};
+        document.getElementById("out").innerHTML =
+          "已获取 token：" + token +
+          "<br>风险评估：IP 信誉=" + (r.ipRisk ?? "-") +
+          "，自动化特征分=" + (r.automationScore ?? "-") +
+          "，ASN=" + (r.asn ?? "-") +
+          "，国家=" + (r.country ?? "-");
+        // 这里可把 token 随业务请求带回后端，由后端用 HUMAN_SECRET 验签放行
+      }
+    </script>
+
+    <!-- 引入可嵌入验证脚本（由本 Worker 提供） -->
+    <script src="/human-verify.js" async></script>
+  </body>
+</html>

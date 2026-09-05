@@ -1,0 +1,15 @@
+{
+  "name": "human-verify-worker",
+  "version": "1.0.0",
+  "description": "自研无接触式人机验证 Cloudflare Worker（HMAC 挑战 + PoW 算力证明，不依赖 Turnstile）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.122.0"
+  }
+}

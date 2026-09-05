@@ -1,0 +1,24 @@
+name = "human-verify-worker"
+main = "src/worker.js"
+compatibility_date = "2026-09-03"
+
+# 静态资源目录：存放前端页面（无接触式验证控件）
+[assets]
+directory = "public"
+binding = "ASSETS"
+
+# PoW 难度（前导 0 比特数）。数字越大越难、越能挡脚本，但前端耗时越长。
+# 16 ≈ 6.5 万次哈希（亚百毫秒）；想更强可设 20~24（注意移动端耗时）。
+[vars]
+DIFFICULTY = "16"
+
+# HUMAN_SECRET 是签名密钥，切勿明文写入此文件。
+# 本地开发：执行 `wrangler secret put HUMAN_SECRET`（会自动写入 .dev.vars）
+# 部署线上：执行 `wrangler secret put HUMAN_SECRET`（写入线上环境）
+# 生成示例值：  openssl rand -hex 32
+
+# KV 防重放：记录已消耗的 challenge jti，防止同一挑战被重复使用（重复提交直接 403）
+# 命名空间 VERIFY_KV 已创建（id 见下）。如要更换，执行 `wrangler kv namespace create VERIFY_KV`
+[[kv_namespaces]]
+binding = "VERIFY_KV"
+id = "1a72a4dcc4634ffea2b67d5cb20492e6"

@@ -1,0 +1,9 @@
+# 本地开发环境变量模板
+# 复制本文件为 .dev.vars 并填入真实值（.dev.vars 已被 .gitignore 忽略，不会提交）
+#
+# HMAC 签名密钥（必填）：用于签发/校验挑战令牌与验证令牌
+# 生成方式：openssl rand -hex 32
+HUMAN_SECRET="replace-with-openssl-rand-hex-32-output"
+
+# PoW 难度（可选，默认 16）：哈希前导 0 比特数，越大越难、越能挡脚本
+# DIFFICULTY="16"

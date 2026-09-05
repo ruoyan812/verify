@@ -1,0 +1,18 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env
+*.log
+.DS_Store
+
+# error / debug traces
+*.err
+
+# source maps (build artifacts)
+*.map
+
+# local IDE / tooling settings
+.codebuddy/
+
+# backup files
+*.bak.js
